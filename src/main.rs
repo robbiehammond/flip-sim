@@ -57,9 +57,6 @@ fn main() -> Result<(), String> {
                 texture_canvas.set_draw_color(Color::RGBA(255, 0, 0, 255));
                 for p in g.particles() {
                    texture_canvas.filled_circle(p.pos.0 as i16, p.pos.1 as i16, 20, Color::GREEN);
-                   let x = p.pos.0;
-                   let y = p.pos.1;
-                    println!("particle x: {x}, particle y: {y}");
 
                 }
             })
@@ -69,13 +66,13 @@ fn main() -> Result<(), String> {
             canvas
                 .with_texture_canvas(&mut texture, |texture_canvas| {
                     texture_canvas.set_draw_color(Color::RGBA(0, 0, 255, 255));
-                    for i in (0..NUM_HEIGHT_CELLS) {
-                        for j in (0..NUM_WIDTH_CELLS) {
+                    for i in (0..NUM_WIDTH_CELLS) {
+                        for j in (0..NUM_HEIGHT_CELLS) {
                             let v = scale(0.0, 100., g.getVel(i, j).unwrap());
                             let a = (v * 255.) as u8;
                             let x = i * CELL_SIZE;
                             let y = j * CELL_SIZE;
-                                texture_canvas.filled_circle((i * CELL_SIZE) as i16,(j * CELL_SIZE) as i16, 2, Color::RGBA(0, 0, 255, a));
+                                texture_canvas.filled_circle((i * CELL_SIZE) as i16,(j * CELL_SIZE) as i16, 5, Color::RGBA(0, 0, 255, a));
                             if (a == 255) {
                                 println!("{x}, {y}, {a} ");
                             }
