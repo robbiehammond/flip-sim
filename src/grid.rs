@@ -21,7 +21,7 @@ pub mod action_grid {
     pub const G: f32 = 9.8;
     pub const DAMPING_COEF: f32 = 1.0; //1 means no damping 
 
-    #[derive(Copy, Clone)]
+    #[derive(Copy, Clone, PartialEq)]
     pub enum State {
         Paused,
         Running,
@@ -49,7 +49,7 @@ pub mod action_grid {
                 particles: particles,
                 velocity: velocity, 
                 cells: playground,
-                state: State::Paused,
+                state: State::Running,
             }
         }
 
@@ -135,7 +135,8 @@ pub mod action_grid {
         }
 
         pub fn update(&mut self) {
-            self.step();
+            if (self.state == State::Paused) { return }
+            self.step(); 
             self.update_velocity_grid();
             for p in self.particles {
                 let x = p.pos.0;

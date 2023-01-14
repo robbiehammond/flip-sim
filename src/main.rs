@@ -14,7 +14,7 @@ use sdl2::rect::{Point, Rect};
 use grid::action_grid::{PLAYGROUND_WIDTH, PLAYGROUND_HEIGHT, NUM_HEIGHT_CELLS, NUM_WIDTH_CELLS};
 use Util::Util::scale;
 
-use crate::Grid::action_grid::CELL_SIZE;
+use crate::Grid::action_grid::{CELL_SIZE, State};
 fn main() -> Result<(), String> {
     pub const SHOW_GRIDLIENS: bool = true;
     let sdl_context = sdl2::init()?;
@@ -46,9 +46,10 @@ fn main() -> Result<(), String> {
         for event in sdl_context.event_pump()?.poll_iter() {
             match event {
                 Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
+                    keycode: Some(Keycode::Space),
+                    repeat: false,
                     ..
-                }
+                } => { g.toggle_state(); } 
                 | Event::Quit { .. } => break 'mainloop,
                 _ => {}
             }
