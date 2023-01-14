@@ -8,15 +8,16 @@ pub mod action_grid {
 
     use crate::{Grid::particle::Particle, Util::Util::mag};
 
-    pub const CELL_SIZE : u32 = 20;
+    pub const CELL_SIZE : u32 = 50;
     //Leave PLAYGROUND_WIDTH and PLAYGROUND_HEIGHT as multiples of CELL_SIZE ensure correct behavior 
-    pub const PLAYGROUND_WIDTH: u32 = 40 * CELL_SIZE;
-    pub const PLAYGROUND_HEIGHT: u32 = 25 * CELL_SIZE;
+    pub const PLAYGROUND_WIDTH: u32 = 20 * CELL_SIZE;
+    pub const PLAYGROUND_HEIGHT: u32 = 10 * CELL_SIZE;
 
     pub const NUM_HEIGHT_CELLS: u32 = PLAYGROUND_HEIGHT / CELL_SIZE;
     pub const NUM_WIDTH_CELLS: u32 = PLAYGROUND_WIDTH / CELL_SIZE;
 
-    pub const NUM_PARTICLES: i32 = 20;
+    pub const NUM_PARTICLES: u32 = 5;
+
     pub const TIMESTEP: f32 = 1.0 / 10.0;
     pub const G: f32 = 9.8;
     pub const DAMPING_COEF: f32 = 1.0; //1 means no damping 
@@ -42,7 +43,7 @@ pub mod action_grid {
             let mut particles = [Particle::new((rand::thread_rng().gen_range(0..100) as f32), (rand::thread_rng().gen_range(0..100) as f32)); NUM_PARTICLES as usize];
             for i in (0..NUM_PARTICLES) {
                 particles[(i as usize)] = Particle::new(rand::thread_rng().gen_range(0..PLAYGROUND_WIDTH) as f32, rand::thread_rng().gen_range(0..PLAYGROUND_HEIGHT) as f32);
-                particles[(i as usize)].vel.0 = rand::thread_rng().gen_range(-100..100) as f32;
+                //particles[(i as usize)].vel.0 = rand::thread_rng().gen_range(-100..100) as f32;
             }
 
             phys_system {
@@ -120,6 +121,46 @@ pub mod action_grid {
             self.state
         }
 
+        pub fn particles_to_grid(&mut self) {
+            for i in (0..NUM_WIDTH_CELLS) {
+                for j in (0..NUM_HEIGHT_CELLS) {
+                   self.velocity[((i as u32) + (j as u32) * NUM_WIDTH_CELLS) as usize] = 0.0
+                }
+            }
+            for p in self.particles {
+                let top_left = ((p.pos.0 as u32 / CELL_SIZE) , (p.pos.1 as u32 / CELL_SIZE));
+                let top_right = ((p.pos.0 as u32 / CELL_SIZE) + 1, (p.pos.1 as u32 / CELL_SIZE));
+                let bottom_left = ((p.pos.0 as u32 / CELL_SIZE), (p.pos.1 as u32 / CELL_SIZE) + 1);
+                let bottom_right = ((p.pos.0 as u32 / CELL_SIZE) + 1, (p.pos.1 as u32 / CELL_SIZE) + 1);
+                let l = top_left.0;
+                let r = top_left.1;
+                let dx = p.pos.0 - top_left.0 as f32 * CELL_SIZE as f32;
+                let dy = p.pos.1 - top_left.1 as f32 * CELL_SIZE as f32;
+                println!("{dx}, {dy}, {l}, {r}");
+                let w1 = (1.0 - dx / CELL_SIZE as f32) * (1.0 - dy / CELL_SIZE as f32); //top left I think
+                let w2 = (dx / CELL_SIZE as f32) * (1.0 - dy / CELL_SIZE as f32); //top right I think
+                let w3 = (dx / CELL_SIZE as f32) * (dy / CELL_SIZE as f32);
+                let w4 = (1.0 - dx / CELL_SIZE as f32) * (dy / CELL_SIZE as f32);
+
+                if self.exists_in_vel_grid(top_left) {
+                    self.velocity[((top_left.0) + (top_left.1) * NUM_WIDTH_CELLS) as usize] += w1 * mag(p.vel.0, p.vel.1);
+                }
+                if self.exists_in_vel_grid(top_right) {
+                    self.velocity[((top_right.0) + (top_right.1) * NUM_WIDTH_CELLS) as usize] += w2 * mag(p.vel.0, p.vel.1);
+                }
+                if self.exists_in_vel_grid(bottom_right) {
+                    self.velocity[((bottom_right.0) + (bottom_right.1) * NUM_WIDTH_CELLS) as usize] += w3 * mag(p.vel.0, p.vel.1);
+                }
+                if self.exists_in_vel_grid(bottom_left) {
+                    self.velocity[((bottom_left.0) + (bottom_left.1) * NUM_WIDTH_CELLS) as usize] += w4 * mag(p.vel.0, p.vel.1);
+                }
+            }
+        }
+
+        fn exists_in_vel_grid(&self, p: (u32, u32)) -> bool {
+            p.0 >= 0 && p.0 < NUM_WIDTH_CELLS && p.1 >= 0 && p.1 < NUM_HEIGHT_CELLS
+        }
+
         pub fn update_velocity_grid(&mut self) {
             for i in (0..NUM_WIDTH_CELLS) {
                 for j in (0..NUM_HEIGHT_CELLS) {
@@ -137,7 +178,7 @@ pub mod action_grid {
         pub fn update(&mut self) {
             if (self.state == State::Paused) { return }
             self.step(); 
-            self.update_velocity_grid();
+            self.particles_to_grid();
             for p in self.particles {
                 let x = p.pos.0;
                 let y = p.pos.1;

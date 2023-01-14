@@ -72,7 +72,7 @@ fn main() -> Result<(), String> {
                     texture_canvas.set_draw_color(Color::RGBA(0, 0, 255, 255));
                     for i in (0..NUM_WIDTH_CELLS) {
                         for j in (0..NUM_HEIGHT_CELLS) {
-                            let v = scale(0.0, 100., g.getVel(i, j).unwrap());
+                            let v = scale(0.0, 5., g.getVel(i, j).unwrap());
                             let a = (v * 255.) as u8;
                             texture_canvas.filled_circle((i * CELL_SIZE) as i16,(j * CELL_SIZE) as i16, 5, Color::RGBA(0, 0, 255, a));
                         }
