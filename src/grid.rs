@@ -11,9 +11,9 @@ pub mod action_grid {
     pub const PLAYGROUND_WIDTH: u32 = 800;
     pub const PLAYGROUND_HEIGHT: u32 = 500;
     pub const CELL_SIZE : u32 = 10;
-    pub const NUM_HEIGHT_CELLS: u32 = PLAYGROUND_WIDTH / CELL_SIZE;
-    pub const NUM_WIDTH_CELLS: u32 = PLAYGROUND_HEIGHT / CELL_SIZE;
-    pub const NUM_PARTICLES: i32 = 1;
+    pub const NUM_HEIGHT_CELLS: u32 = PLAYGROUND_HEIGHT / CELL_SIZE;
+    pub const NUM_WIDTH_CELLS: u32 = PLAYGROUND_WIDTH / CELL_SIZE;
+    pub const NUM_PARTICLES: i32 = 200;
     pub const TIMESTEP: f32 = 1.0 / 10.0;
     pub const G: f32 = 9.8;
 
@@ -56,12 +56,12 @@ pub mod action_grid {
             }
         }
 
-        pub fn getVel(&self, x: i32, y: i32) -> Option<f32> {
-            if x >= 0 && x < NUM_WIDTH_CELLS as i32 && y >= 0 && y < NUM_HEIGHT_CELLS as i32{
+        pub fn getVel(&self, x: u32, y: u32) -> Option<f32> {
+            if x >= 0 && x < NUM_WIDTH_CELLS && y >= 0 && y < NUM_HEIGHT_CELLS {
                 Some(self.velocity[(x as u32 + (y as u32) * NUM_WIDTH_CELLS) as usize])
             }
             else {
-                None
+                Some(0.0)
             }
         }
 
@@ -82,8 +82,8 @@ pub mod action_grid {
                 p.vel.1 += TIMESTEP * G; //gravity
                 p.pos.0 += TIMESTEP * p.vel.0;
                 p.pos.1 += TIMESTEP * p.vel.1;
-                if (p.pos.1 > PLAYGROUND_HEIGHT as f32) {
-                    p.pos.1 = PLAYGROUND_HEIGHT as f32;
+                if (p.pos.1 >= PLAYGROUND_HEIGHT as f32) {
+                    p.pos.1 = (PLAYGROUND_HEIGHT - 1) as f32;
                     p.vel.1 *= -1.0;
                 }
                 if (p.pos.0 < 0.0) {
@@ -107,13 +107,20 @@ pub mod action_grid {
         }
 
         pub fn update_velocity_grid(&mut self) {
+            for i in (0..NUM_WIDTH_CELLS) {
+                for j in (0..NUM_HEIGHT_CELLS) {
+                   self.velocity[((i as u32) + (j as u32) * NUM_WIDTH_CELLS) as usize] = 0.0
+                }
+            }
             for p in self.particles {
-                let cell = ((p.pos.0 / CELL_SIZE as f32) as i32, (p.pos.1 / CELL_SIZE as f32) as i32);
-                println!("{}", cell.0);
-                println!("{}", cell.1);
-                self.velocity[(cell.0 as u32 + (cell.1 as u32) * NUM_WIDTH_CELLS) as usize] = p.vel.0;
-                println!();
-                
+                let cell = ((p.pos.0 as u32 / CELL_SIZE) , (p.pos.1 as u32 / CELL_SIZE));
+                let posX = p.pos.0;
+                let posY = p.pos.1;
+                let x = cell.0;
+                let y = cell.1;
+                //println!("{posX}, {posY}, {x}, {y}");
+
+                self.velocity[(cell.0 + cell.1 * NUM_WIDTH_CELLS) as usize] = p.vel.1;
             }
 
         }
