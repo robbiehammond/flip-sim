@@ -24,12 +24,15 @@ fn main() -> Result<(), String> {
         .position_centered()
         .build()
         .map_err(|e| e.to_string())?;
+
     let mut canvas = window
         .into_canvas()
         .software()
         .build()
         .map_err(|e| e.to_string())?;
+
     let creator = canvas.texture_creator();
+
     let mut texture = creator
         .create_texture_target(PixelFormatEnum::RGBA8888, PLAYGROUND_WIDTH, PLAYGROUND_HEIGHT)
         .map_err(|e| e.to_string())?;
@@ -70,12 +73,7 @@ fn main() -> Result<(), String> {
                         for j in (0..NUM_HEIGHT_CELLS) {
                             let v = scale(0.0, 100., g.getVel(i, j).unwrap());
                             let a = (v * 255.) as u8;
-                            let x = i * CELL_SIZE;
-                            let y = j * CELL_SIZE;
-                                texture_canvas.filled_circle((i * CELL_SIZE) as i16,(j * CELL_SIZE) as i16, 5, Color::RGBA(0, 0, 255, a));
-                            if (a == 255) {
-                                println!("{x}, {y}, {a} ");
-                            }
+                            texture_canvas.filled_circle((i * CELL_SIZE) as i16,(j * CELL_SIZE) as i16, 5, Color::RGBA(0, 0, 255, a));
                         }
                     }
                 })

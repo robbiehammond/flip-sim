@@ -8,14 +8,18 @@ pub mod action_grid {
 
     use crate::{Grid::particle::Particle, Util::Util::mag};
 
-    pub const PLAYGROUND_WIDTH: u32 = 800;
-    pub const PLAYGROUND_HEIGHT: u32 = 500;
     pub const CELL_SIZE : u32 = 20;
+    //Leave PLAYGROUND_WIDTH and PLAYGROUND_HEIGHT as multiples of CELL_SIZE ensure correct behavior 
+    pub const PLAYGROUND_WIDTH: u32 = 40 * CELL_SIZE;
+    pub const PLAYGROUND_HEIGHT: u32 = 25 * CELL_SIZE;
+
     pub const NUM_HEIGHT_CELLS: u32 = PLAYGROUND_HEIGHT / CELL_SIZE;
     pub const NUM_WIDTH_CELLS: u32 = PLAYGROUND_WIDTH / CELL_SIZE;
+
     pub const NUM_PARTICLES: i32 = 20;
     pub const TIMESTEP: f32 = 1.0 / 10.0;
     pub const G: f32 = 9.8;
+    pub const DAMPING_COEF: f32 = 1.0; //1 means no damping 
 
     #[derive(Copy, Clone)]
     pub enum State {
@@ -38,7 +42,7 @@ pub mod action_grid {
             let mut particles = [Particle::new((rand::thread_rng().gen_range(0..100) as f32), (rand::thread_rng().gen_range(0..100) as f32)); NUM_PARTICLES as usize];
             for i in (0..NUM_PARTICLES) {
                 particles[(i as usize)] = Particle::new(rand::thread_rng().gen_range(0..PLAYGROUND_WIDTH) as f32, rand::thread_rng().gen_range(0..PLAYGROUND_HEIGHT) as f32);
-                particles[(i as usize)].vel.0 = rand::thread_rng().gen_range(0..100) as f32;
+                particles[(i as usize)].vel.0 = rand::thread_rng().gen_range(-100..100) as f32;
             }
 
             phys_system {
@@ -85,20 +89,20 @@ pub mod action_grid {
                 p.pos.1 += TIMESTEP * p.vel.1;
                 if (p.pos.0 >= PLAYGROUND_WIDTH as f32) {
                     p.pos.0 = (PLAYGROUND_WIDTH - 1) as f32;
-                    p.vel.0 *= -1.0;
+                    p.vel.0 *= -1.0 * DAMPING_COEF;
                 }
                 if (p.pos.0 < 0.0) {
                     p.pos.0 = 0.0;
-                    p.vel.0 *= -1.0;
+                    p.vel.0 *= -1.0 * DAMPING_COEF;
 
                 }
                 if (p.pos.1 >= PLAYGROUND_HEIGHT as f32) {
                     p.pos.1 = (PLAYGROUND_HEIGHT - 1) as f32;
-                    p.vel.1 *= -1.0;
+                    p.vel.1 *= -1.0 * DAMPING_COEF;
                 }
                 if (p.pos.0 < 0.0) {
                     p.pos.0 = 0.0;
-                    p.vel.0 *= -1.0;
+                    p.vel.0 *= -1.0 * DAMPING_COEF;
                 }
 
             }
@@ -122,14 +126,9 @@ pub mod action_grid {
                    self.velocity[((i as u32) + (j as u32) * NUM_WIDTH_CELLS) as usize] = 0.0
                 }
             }
+
             for p in self.particles {
                 let cell = ((p.pos.0 as u32 / CELL_SIZE) , (p.pos.1 as u32 / CELL_SIZE));
-                let posX = p.pos.0;
-                let posY = p.pos.1;
-                let x = cell.0;
-                let y = cell.1;
-                //println!("{posX}, {posY}, {x}, {y}");
-
                 self.velocity[(cell.0 + cell.1 * NUM_WIDTH_CELLS) as usize] = mag(p.vel.0, p.vel.1)
             }
 
