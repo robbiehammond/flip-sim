@@ -1,12 +1,9 @@
 pub mod particle;
-use rand;
 
 pub mod action_grid {
-    use std::borrow::Borrow;
-
     use rand::Rng;
 
-    use crate::{Grid::particle::Particle, Util::Util::mag};
+    use crate::{grid::particle::Particle, util::util::mag};
 
     pub const CELL_SIZE : u32 = 50;
     //Leave PLAYGROUND_WIDTH and PLAYGROUND_HEIGHT as multiples of CELL_SIZE ensure correct behavior 
@@ -16,7 +13,7 @@ pub mod action_grid {
     pub const NUM_HEIGHT_CELLS: u32 = PLAYGROUND_HEIGHT / CELL_SIZE;
     pub const NUM_WIDTH_CELLS: u32 = PLAYGROUND_WIDTH / CELL_SIZE;
 
-    pub const NUM_PARTICLES: u32 = 5;
+    pub const NUM_PARTICLES: u32 = 20;
 
     pub const TIMESTEP: f32 = 1.0 / 10.0;
     pub const G: f32 = 9.8;
@@ -28,25 +25,25 @@ pub mod action_grid {
         Running,
     }
 
-    pub struct phys_system {
+    pub struct PhysSystem {
         particles: [Particle; NUM_PARTICLES as usize],
         velocity: [f32; (NUM_WIDTH_CELLS * NUM_HEIGHT_CELLS) as usize],
         cells: [bool; (PLAYGROUND_WIDTH * PLAYGROUND_HEIGHT) as usize],
         state: State,
     }
 
-    impl phys_system {
-        pub fn new() -> phys_system {
-            let mut playground = [false; (PLAYGROUND_WIDTH * PLAYGROUND_HEIGHT) as usize];
-            let mut velocity = [0.0; (NUM_WIDTH_CELLS * NUM_HEIGHT_CELLS) as usize];
+    impl PhysSystem {
+        pub fn new() -> PhysSystem {
+            let playground = [false; (PLAYGROUND_WIDTH * PLAYGROUND_HEIGHT) as usize];
+            let velocity = [0.0; (NUM_WIDTH_CELLS * NUM_HEIGHT_CELLS) as usize];
 
-            let mut particles = [Particle::new((rand::thread_rng().gen_range(0..100) as f32), (rand::thread_rng().gen_range(0..100) as f32)); NUM_PARTICLES as usize];
-            for i in (0..NUM_PARTICLES) {
+            let mut particles = [Particle::new(rand::thread_rng().gen_range(0..100) as f32, rand::thread_rng().gen_range(0..100) as f32); NUM_PARTICLES as usize];
+            for i in 0..NUM_PARTICLES {
                 particles[(i as usize)] = Particle::new(rand::thread_rng().gen_range(0..PLAYGROUND_WIDTH) as f32, rand::thread_rng().gen_range(0..PLAYGROUND_HEIGHT) as f32);
-                //particles[(i as usize)].vel.0 = rand::thread_rng().gen_range(-100..100) as f32;
+                particles[(i as usize)].vel.0 = rand::thread_rng().gen_range(-100..100) as f32;
             }
 
-            phys_system {
+            PhysSystem {
                 particles: particles,
                 velocity: velocity, 
                 cells: playground,
@@ -62,8 +59,8 @@ pub mod action_grid {
             }
         }
 
-        pub fn getVel(&self, x: u32, y: u32) -> Option<f32> {
-            if x >= 0 && x < NUM_WIDTH_CELLS && y >= 0 && y < NUM_HEIGHT_CELLS {
+        pub fn get_vel(&self, x: u32, y: u32) -> Option<f32> {
+            if x < NUM_WIDTH_CELLS && y < NUM_HEIGHT_CELLS {
                 Some(self.velocity[(x as u32 + (y as u32) * NUM_WIDTH_CELLS) as usize])
             }
             else {
@@ -88,20 +85,20 @@ pub mod action_grid {
                 p.vel.1 += TIMESTEP * G; //gravity
                 p.pos.0 += TIMESTEP * p.vel.0;
                 p.pos.1 += TIMESTEP * p.vel.1;
-                if (p.pos.0 >= PLAYGROUND_WIDTH as f32) {
+                if p.pos.0 >= PLAYGROUND_WIDTH as f32 {
                     p.pos.0 = (PLAYGROUND_WIDTH - 1) as f32;
                     p.vel.0 *= -1.0 * DAMPING_COEF;
                 }
-                if (p.pos.0 < 0.0) {
+                if p.pos.0 < 0.0 {
                     p.pos.0 = 0.0;
                     p.vel.0 *= -1.0 * DAMPING_COEF;
 
                 }
-                if (p.pos.1 >= PLAYGROUND_HEIGHT as f32) {
+                if p.pos.1 >= PLAYGROUND_HEIGHT as f32 {
                     p.pos.1 = (PLAYGROUND_HEIGHT - 1) as f32;
                     p.vel.1 *= -1.0 * DAMPING_COEF;
                 }
-                if (p.pos.0 < 0.0) {
+                if p.pos.0 < 0.0 {
                     p.pos.0 = 0.0;
                     p.vel.0 *= -1.0 * DAMPING_COEF;
                 }
@@ -122,8 +119,8 @@ pub mod action_grid {
         }
 
         pub fn particles_to_grid(&mut self) {
-            for i in (0..NUM_WIDTH_CELLS) {
-                for j in (0..NUM_HEIGHT_CELLS) {
+            for i in 0..NUM_WIDTH_CELLS {
+                for j in 0..NUM_HEIGHT_CELLS {
                    self.velocity[((i as u32) + (j as u32) * NUM_WIDTH_CELLS) as usize] = 0.0
                 }
             }
@@ -132,15 +129,14 @@ pub mod action_grid {
                 let top_right = ((p.pos.0 as u32 / CELL_SIZE) + 1, (p.pos.1 as u32 / CELL_SIZE));
                 let bottom_left = ((p.pos.0 as u32 / CELL_SIZE), (p.pos.1 as u32 / CELL_SIZE) + 1);
                 let bottom_right = ((p.pos.0 as u32 / CELL_SIZE) + 1, (p.pos.1 as u32 / CELL_SIZE) + 1);
-                let l = top_left.0;
-                let r = top_left.1;
+
                 let dx = p.pos.0 - top_left.0 as f32 * CELL_SIZE as f32;
                 let dy = p.pos.1 - top_left.1 as f32 * CELL_SIZE as f32;
-                println!("{dx}, {dy}, {l}, {r}");
-                let w1 = (1.0 - dx / CELL_SIZE as f32) * (1.0 - dy / CELL_SIZE as f32); //top left I think
-                let w2 = (dx / CELL_SIZE as f32) * (1.0 - dy / CELL_SIZE as f32); //top right I think
-                let w3 = (dx / CELL_SIZE as f32) * (dy / CELL_SIZE as f32);
-                let w4 = (1.0 - dx / CELL_SIZE as f32) * (dy / CELL_SIZE as f32);
+                //println!("{dx}, {dy}, {l}, {r}");
+                let w1 = (1.0 - dx / CELL_SIZE as f32) * (1.0 - dy / CELL_SIZE as f32); //top left (in theory)
+                let w2 = (dx / CELL_SIZE as f32) * (1.0 - dy / CELL_SIZE as f32); //top right (in theory)
+                let w3 = (dx / CELL_SIZE as f32) * (dy / CELL_SIZE as f32); //bottom_left (in theory)
+                let w4 = (1.0 - dx / CELL_SIZE as f32) * (dy / CELL_SIZE as f32); //bottom_right (in theory)
 
                 if self.exists_in_vel_grid(top_left) {
                     self.velocity[((top_left.0) + (top_left.1) * NUM_WIDTH_CELLS) as usize] += w1 * mag(p.vel.0, p.vel.1);
@@ -158,12 +154,12 @@ pub mod action_grid {
         }
 
         fn exists_in_vel_grid(&self, p: (u32, u32)) -> bool {
-            p.0 >= 0 && p.0 < NUM_WIDTH_CELLS && p.1 >= 0 && p.1 < NUM_HEIGHT_CELLS
+            p.0 < NUM_WIDTH_CELLS && p.1 < NUM_HEIGHT_CELLS
         }
 
         pub fn update_velocity_grid(&mut self) {
-            for i in (0..NUM_WIDTH_CELLS) {
-                for j in (0..NUM_HEIGHT_CELLS) {
+            for i in 0..NUM_WIDTH_CELLS {
+                for j in 0..NUM_HEIGHT_CELLS {
                    self.velocity[((i as u32) + (j as u32) * NUM_WIDTH_CELLS) as usize] = 0.0
                 }
             }
@@ -176,20 +172,20 @@ pub mod action_grid {
         }
 
         pub fn update(&mut self) {
-            if (self.state == State::Paused) { return }
+            if self.state == State::Paused { return }
             self.step(); 
             self.particles_to_grid();
             for p in self.particles {
                 let x = p.pos.0;
                 let y = p.pos.1;
-                if (x >= 0.0 && y >= 0.0 && (x as i32) < PLAYGROUND_WIDTH as i32 && (y as i32) < PLAYGROUND_HEIGHT as i32) {
+                if x >= 0.0 && y >= 0.0 && (x as i32) < PLAYGROUND_WIDTH as i32 && (y as i32) < PLAYGROUND_HEIGHT as i32 {
                     self.cells[(x as u32 + (y as u32) * PLAYGROUND_WIDTH) as usize] = true
                 }
             }
         }
     }
 
-    impl<'a> IntoIterator for &'a phys_system{
+    impl<'a> IntoIterator for &'a PhysSystem{
         type Item = &'a bool;
         type IntoIter = ::std::slice::Iter<'a, bool>;
         fn into_iter(self) -> ::std::slice::Iter<'a, bool> {

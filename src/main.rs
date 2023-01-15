@@ -1,20 +1,18 @@
 extern crate sdl2;
 mod grid;
-mod Util;
-mod Grid;
 mod util;
 
 use std::time::Duration;
-use Grid::action_grid::phys_system;
+use grid::action_grid::PhysSystem;
 use sdl2::event::Event;
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect::{Point, Rect};
 use grid::action_grid::{PLAYGROUND_WIDTH, PLAYGROUND_HEIGHT, NUM_HEIGHT_CELLS, NUM_WIDTH_CELLS};
-use Util::Util::scale;
+use util::util::scale;
 
-use crate::Grid::action_grid::{CELL_SIZE, State};
+use crate::grid::action_grid::{CELL_SIZE};
 fn main() -> Result<(), String> {
     pub const SHOW_GRIDLIENS: bool = true;
     let sdl_context = sdl2::init()?;
@@ -37,9 +35,8 @@ fn main() -> Result<(), String> {
         .create_texture_target(PixelFormatEnum::RGBA8888, PLAYGROUND_WIDTH, PLAYGROUND_HEIGHT)
         .map_err(|e| e.to_string())?;
 
-    let mut angle = 0.0;
 
-    let mut g = phys_system::new();
+    let mut g = PhysSystem::new();
 
     'mainloop: loop {
         g.update();
@@ -60,21 +57,24 @@ fn main() -> Result<(), String> {
                 texture_canvas.clear();
                 texture_canvas.set_draw_color(Color::RGBA(255, 0, 0, 255));
                 for p in g.particles() {
-                   texture_canvas.filled_circle(p.pos.0 as i16, p.pos.1 as i16, 20, Color::GREEN);
+                    texture_canvas.filled_circle(p.pos.0 as i16, p.pos.1 as i16, 20, Color::GREEN)
+                    .map_err(|e| println!("{}", e)).unwrap();
 
                 }
             })
             .map_err(|e| e.to_string())?;
 
-        if (SHOW_GRIDLIENS) {
+        if SHOW_GRIDLIENS {
             canvas
                 .with_texture_canvas(&mut texture, |texture_canvas| {
                     texture_canvas.set_draw_color(Color::RGBA(0, 0, 255, 255));
-                    for i in (0..NUM_WIDTH_CELLS) {
-                        for j in (0..NUM_HEIGHT_CELLS) {
-                            let v = scale(0.0, 5., g.getVel(i, j).unwrap());
+                    for i in 0..NUM_WIDTH_CELLS {
+                        for j in 0..NUM_HEIGHT_CELLS {
+                            let v = scale(0.0, 10., g.get_vel(i, j).unwrap());
                             let a = (v * 255.) as u8;
-                            texture_canvas.filled_circle((i * CELL_SIZE) as i16,(j * CELL_SIZE) as i16, 5, Color::RGBA(0, 0, 255, a));
+                            texture_canvas.filled_circle((i * CELL_SIZE) as i16,(j * CELL_SIZE) as i16, 5, Color::RGBA(0, 0, 255, a))
+                                .map_err(|e| println!("{}", e)).unwrap();
+
                         }
                     }
                 })
@@ -87,7 +87,7 @@ fn main() -> Result<(), String> {
             &texture,
             None,
             dst,
-            angle,
+            0.0,
             Some(Point::new(PLAYGROUND_WIDTH as i32 / 2, PLAYGROUND_HEIGHT as i32 / 2)),
             false,
             false,

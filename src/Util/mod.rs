@@ -1,10 +1,10 @@
-pub mod Util {
+pub mod util {
 
     pub fn scale(min: f32, max: f32, val: f32) -> f32 {
-        ((val - min) / (max - min))
+        (val - min) / (max - min)
     }
 
-    pub fn mag(dX: f32, dY: f32) -> f32 {
-        (dX * dX + dY * dY).sqrt()
+    pub fn mag(dx: f32, dy: f32) -> f32 {
+        (dx * dx + dy * dy).sqrt()
     }
 }
