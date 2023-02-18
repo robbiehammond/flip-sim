@@ -17,7 +17,7 @@ pub mod action_grid {
     pub const P_TO_G_PROPORTION: f32 = 0.9;
     pub const CLIPPING_SPEED: f32 = 20.0;
 
-    pub const NUM_PARTICLES: u32 = 1;
+    pub const NUM_PARTICLES: u32 = 5;
 
     pub const TIMESTEP: f32 = 1.0 / 10.0;
     pub const G: f32 = 9.8;
@@ -109,9 +109,9 @@ pub mod action_grid {
                     p.pos.1 = (PLAYGROUND_HEIGHT - 1) as f32;
                     p.vel.1 *= -1.0 * DAMPING_COEF;
                 }
-                if p.pos.0 < 0.0 {
-                    p.pos.0 = 0.0;
-                    p.vel.0 *= -1.0 * DAMPING_COEF;
+                if p.pos.1 < 0.0 {
+                    p.pos.1 = 0.0;
+                    p.vel.1 *= -1.0 * DAMPING_COEF;
                 }
                 println!("{}", p.vel.1)
             }
