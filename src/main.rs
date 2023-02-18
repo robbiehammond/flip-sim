@@ -1,6 +1,6 @@
 extern crate sdl2;
 mod grid;
-mod util;
+mod Util;
 
 use std::time::Duration;
 use grid::action_grid::PhysSystem;
@@ -10,7 +10,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect::{Point, Rect};
 use grid::action_grid::{PLAYGROUND_WIDTH, PLAYGROUND_HEIGHT, NUM_HEIGHT_CELLS, NUM_WIDTH_CELLS};
-use util::util::scale;
+use Util::util::scale;
 
 use crate::grid::action_grid::{CELL_SIZE};
 fn main() -> Result<(), String> {
@@ -71,7 +71,7 @@ fn main() -> Result<(), String> {
                     for i in 0..NUM_WIDTH_CELLS {
                         for j in 0..NUM_HEIGHT_CELLS {
                             let l = g.get_vel(i, j).unwrap();
-                            let v = scale(0.0, 30., (l.0 * l.0 + l.1* l.1).sqrt());
+                            let v = scale(0.0, 2., (l.0 * l.0 + l.1* l.1).sqrt());
                             let a = (v * 255.) as u8;
                             texture_canvas.filled_circle((i * CELL_SIZE) as i16,(j * CELL_SIZE) as i16, 5, Color::RGBA(0, 0, 255, a))
                                 .map_err(|e| println!("{}", e)).unwrap();
